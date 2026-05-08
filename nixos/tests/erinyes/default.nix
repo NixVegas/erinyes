@@ -37,7 +37,7 @@ testers.runNixOSTest {
     machine.succeed("""sudo -u alice sh -c 'cd && exec nix-build --option substitute false -E "with import ${pkgsPath} {}; callPackage ./lpe.nix { }"'""")
     machine.fail("""
       # If this succeeds, it is very bad
-      checkTarget
+      sudo -u alice checkTarget
     """)
   '';
 
