@@ -21,9 +21,7 @@ and others for their fast responses to these PoCs.
 ## Purpose
 
 > [!NOTE]
-> To cut to the chase, run `nix flake check` for a reproducible VM test
-> (currently, it exploits both copyfail and dirtyfrag from the Nix build sandbox
-> in a VM). `nix build .#lpe` will try on your system; be careful if you do that.
+> `nix build .#lpe` for a local LPE with a single Nix build. If you want to do it in a VM that's guaranteed to have a vulnerable kernel, try `nix flake check` instead.
 > Both corrupt the particular version of `umount` that this flake is locked to
 > from inside the build sandbox, either inside or outside a VM.
 > If you do the build outside a VM test and this happens to be the same one as
@@ -81,11 +79,13 @@ At most, it'll prevent non-malicious mistakes during builds from trashing your s
 and is supposed to help with reproducibility.
 
 It is probably more worth it to think about microVM builders than plugging
-up sandbox holes. We have the [seccomp sandbox](https://github.com/NixOS/nix/blob/2.34.7/src/libstore/unix/build/linux-derivation-builder.cc)
+up sandbox holes. (Note that at least nixbuild.net was already doing this, so best people could do is corrupting a store path in an ephemeral VM with them - well done there 😀).
+
+We have the [seccomp sandbox](https://github.com/NixOS/nix/blob/2.34.7/src/libstore/unix/build/linux-derivation-builder.cc)
 where we could disable AF_ALG and friends, but some
 io_uring issue is probably next. Plugging holes on a leaky ship only goes so far.
 
-Note that we also require [user namespacing](https://github.com/NixOS/nix/blob/2.34.7/src/libstore/unix/build/linux-derivation-builder.cc#L845)
+Also note that we also require [user namespacing](https://github.com/NixOS/nix/blob/2.34.7/src/libstore/unix/build/linux-derivation-builder.cc#L845)
 for builds. Unsharing namespaces seems like it opens up a lot of attack
 surface... maybe we should consider doing something else and just accepting
 we'll get more EPERM from builds. Here's also someone [complaining](https://discourse.nixos.org/t/sandbox-true-requires-linux-user-namespaces-what-gives/77519) about this.
@@ -233,6 +233,8 @@ in a build, and if you can corrupt its page cache, it'll affect everyone. It's t
 Corrupt a FOD and you don't have to worry about what nixpkgs version someone is running,
 though you do need a malicious derivation instead of just some malicious code in the sandbox.
 
+(inputrc, btw)
+
 ### What about SELinux?
 
 It will still take a lot of work, but is probably a good idea for NixOS, especially if
@@ -261,4 +263,3 @@ contexts could be automatically created for store paths.
   instead of the page cache (but this is only half the story, see previous conditions)
   - Note that non-ZFS filesystems can still have their page cache overwritten (maybe ZFS
     under certain circumstances?)
-- fs-verity, maybe?
