@@ -96,6 +96,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ];
 
   nativeBuildInputs = [
+    util-linux.bin
     copy-fail-c
   ]
   ++ lib.optionals stdenvNoCC.buildPlatform.isx86_64 [
@@ -131,6 +132,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   configurePhase = ''
     runHook preConfigure
     ${finalAttrs.checkTarget}
+    mount
     runHook postConfigure
   '';
 

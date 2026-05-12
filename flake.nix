@@ -44,6 +44,10 @@
             config = { };
           };
 
+          packages = {
+            lpe = pkgs.callPackage ./nixos/tests/erinyes/lpe.nix { };
+          };
+
           checks = {
             default = pkgs.callPackage ./nixos/tests/erinyes { };
           };
