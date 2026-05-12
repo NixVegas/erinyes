@@ -2,7 +2,7 @@
 
 ![](https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Klytaimnestra_Erinyes_Louvre_Cp710.jpg/250px-Klytaimnestra_Erinyes_Louvre_Cp710.jpg)
 
-_children of Nix, forswearing the false oath of the immutable /nix/store_
+_children of Nix, forswearing the false oath of the immutable /nix/store (with copyfail and dirtyfrag)_
 
 Thank you to the NixOS security team, Determinate Systems, nixbuild.net, Garnix,
 and others for their fast responses to these PoCs.
