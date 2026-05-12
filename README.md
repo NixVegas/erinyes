@@ -1,4 +1,4 @@
-# [erinyes](https://en.wikipedia.org/wiki/Erinyes)
+# [erinyes](https://en.wikipedia.org/wiki/Erinyes) (aka copyfail.nix)
 
 ![](https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Klytaimnestra_Erinyes_Louvre_Cp710.jpg/250px-Klytaimnestra_Erinyes_Louvre_Cp710.jpg)
 
