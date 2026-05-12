@@ -21,9 +21,9 @@ and others for their fast responses to these PoCs.
 ## Purpose
 
 > [!NOTE]
-> Run `nix build .#lpe` for a local copyfail/dirtyfrag LPE with a single Nix build.
+> Run `nix build .#lpe` for a local copyfail/dirtyfrag LPE with a single Nix build. (It doesn't just build the LPE, the build _is_ the LPE).
 >
-> If you want to do it in a VM that's guaranteed to have a vulnerable kernel, try `nix flake check` instead.
+> If you want to do it in a VM that's guaranteed to have a vulnerable kernel, try `nix flake check` instead and the build will happen within the sandbox in the test VM.
 >
 > Both corrupt the particular version of `umount` that this flake is locked to
 > from inside the build sandbox, either inside or outside a VM.
