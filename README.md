@@ -25,6 +25,8 @@ and others for their fast responses to these PoCs.
 >
 > If you want to do it in a VM that's guaranteed to have a vulnerable kernel, try `nix flake check` instead and the build will happen within the sandbox in the test VM.
 >
+> If the build succeeds or the VM test fails, it may have worked.
+>
 > Both corrupt the particular version of `umount` that this flake is locked to
 > from inside the build sandbox, either inside or outside a VM.
 > If you do the build outside a VM test and this happens to be the same one as

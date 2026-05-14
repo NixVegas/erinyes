@@ -125,6 +125,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       else
         echo "Output was '$output'. Maybe the system is patched?" >&2
         echo "If you run $* afterwards and don't get a shell, you're probably OK" >&2
+        if [[ ! -v out ]] || [ -z "$out" ]; then
+          # Not running in a build, we failed
+          exit 1
+        fi
       fi
     }
   '';

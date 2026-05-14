@@ -34,7 +34,7 @@ testers.runNixOSTest {
     machine.wait_for_unit("multi-user.target")
     machine.copy_from_host("${./lpe.nix}", "/home/alice/lpe.nix")
     machine.succeed("command -v checkTarget")
-    machine.succeed("""sudo -u alice sh -c 'cd && exec nix-build --option substitute false -E "with import ${pkgsPath} {}; callPackage ./lpe.nix { }"'""")
+    machine.succeed("""sudo -u alice sh -c 'cd && exec nix-build --option substitute false -E "with import ${pkgsPath} {}; callPackage ./lpe.nix { }"' || true""")
     machine.fail("""
       # If this succeeds, it is very bad
       sudo -u alice checkTarget
