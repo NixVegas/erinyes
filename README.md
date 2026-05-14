@@ -2,7 +2,7 @@
 
 ![](https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Klytaimnestra_Erinyes_Louvre_Cp710.jpg/250px-Klytaimnestra_Erinyes_Louvre_Cp710.jpg)
 
-_children of Nix, forswearing the false oath of the immutable /nix/store (with copyfail and dirtyfrag)_
+_children of Nix, forswearing the false oath of the immutable /nix/store (with copyfail and friends)_
 
 Thank you to the NixOS security team, Determinate Systems, nixbuild.net, Garnix,
 and others for their fast responses to these PoCs.
@@ -21,7 +21,7 @@ and others for their fast responses to these PoCs.
 ## Purpose
 
 > [!NOTE]
-> Run `nix build .#lpe` for a local copyfail/dirtyfrag LPE with a single Nix build. (It doesn't just build the LPE, the build _is_ the LPE).
+> Run `nix build .#lpe` for a local fragnesia/dirtyfrag/copyfail LPE with a single Nix build. (It doesn't just build the LPE, the build _is_ the LPE).
 >
 > If you want to do it in a VM that's guaranteed to have a vulnerable kernel, try `nix flake check` instead and the build will happen within the sandbox in the test VM.
 >
@@ -247,11 +247,12 @@ contexts could be automatically created for store paths.
 
 ## Proofs of concept
 
-- https://copy.fail: [copy-fail-c](https://github.com/tgies/copy-fail-c)
+- Fragnesia: https://github.com/v12-security/pocs/tree/main/fragnesia
 - https://dirtyfrag.io: [dirtyfrag](https://github.com/V4bel/dirtyfrag)
   - Another potential option, though not included since it appears to be the
     same mechanism: [copy fail
     2](https://github.com/0xdeadbeefnetwork/Copy_Fail2-Electric_Boogaloo)
+- https://copy.fail: [copy-fail-c](https://github.com/tgies/copy-fail-c)
 
 ### Mitigations
 

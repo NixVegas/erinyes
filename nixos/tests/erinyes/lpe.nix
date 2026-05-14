@@ -17,7 +17,7 @@
 
 let
   # Nice setuid that's seldom used (less than 'mount' anyway).
-  target = lib.getExe' util-linux.bin "umount";
+  target = lib.getExe' util-linux.mount "umount";
 
   copy-fail-c = pkgsStatic.stdenv.mkDerivation {
     pname = "copy-fail-c";
@@ -79,19 +79,51 @@ let
       runHook postInstall
     '';
   };
+
+  fragnesia = stdenv.mkDerivation {
+    pname = "fragnesia";
+    version = "0.1";
+
+    src = fetchFromGitHub {
+      owner = "v12-security";
+      repo = "pocs";
+      rev = "7b5fc577c3d9ad386cc109b1eb7b02623f48ca13";
+      hash = "sha256-pJvvqrTxiF5qcZtjNeseEzbFaI0WSs/FdPy/QscUPmY=";
+    };
+
+    postPatch = ''
+      cd fragnesia
+      substituteInPlace fragnesia.c \
+        --replace-fail '"/usr/bin/su"' '"${target}"'
+    '';
+
+    buildPhase = ''
+      runHook preBuild
+      gcc -Os -Wall -o fragnesia fragnesia.c
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/bin
+      cp fragnesia $out/bin/
+      runHook postInstall
+    '';
+  };
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   name = "dirtyfrag";
 
   phases = [
     "configurePhase"
-    "copyFailPhase"
   ]
   ++ lib.optionals stdenvNoCC.buildPlatform.isx86_64 [
     # Currently only works on x86_64
+    "fragnesiaPhase"
     "dirtyFragPhase"
   ]
   ++ [
+    "copyFailPhase"
     "fixupPhase"
   ];
 
@@ -101,6 +133,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals stdenvNoCC.buildPlatform.isx86_64 [
     dirtyfrag
+    fragnesia
   ];
 
   inherit target;
@@ -140,11 +173,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook postConfigure
   '';
 
-  copyFailPhase = ''
-    runHook preCopyFail
-    copyfail $target </dev/null || true
+  fragnesiaPhase = ''
+    runHook preFragnesia
+    fragnesia || true
     checkTarget $target
-    runHook postCopyFail
+    runHook postFragnesia
   '';
 
   dirtyFragPhase = ''
@@ -152,6 +185,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     dirtyfrag --verbose </dev/null || true
     checkTarget $target
     runHook postDirtyFrag
+  '';
+
+  copyFailPhase = ''
+    runHook preCopyFail
+    copyfail $target </dev/null || true
+    checkTarget $target
+    runHook postCopyFail
   '';
 
   fixupPhase = ''
