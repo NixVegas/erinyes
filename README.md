@@ -21,7 +21,7 @@ and others for their fast responses to these PoCs.
 ## Purpose
 
 > [!NOTE]
-> Run `nix build .#lpe` for a local fragnesia/dirtyfrag/copyfail LPE with a single Nix build. (It doesn't just build the LPE, the build _is_ the LPE).
+> Run `nix build .#lpe` for a LPE with a single Nix build. (It doesn't just build the LPE, the build _is_ the LPE).
 >
 > If you want to do it in a VM that's guaranteed to have a vulnerable kernel, try `nix flake check` instead and the build will happen within the sandbox in the test VM.
 >

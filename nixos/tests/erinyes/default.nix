@@ -26,6 +26,8 @@ testers.runNixOSTest {
         isNormalUser = true;
         uid = 1000;
       };
+      # needed for pintheft
+      #boot.kernelModules = ["rds" "rds_tcp"];
       environment.systemPackages = [ checkTarget ];
       system.extraDependencies = [ pkgs.stdenvNoCC ] ++ lpe'.nativeBuildInputs;
     };
